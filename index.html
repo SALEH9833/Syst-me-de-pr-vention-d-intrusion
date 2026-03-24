@@ -225,5 +225,112 @@
             }, 2000);
         }
     </script>
+    
+        <!-- PARTIE 1 : RAPPORT DE TEST GUI -->
+        <section id="partie1" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-10">
+                <h2 class="text-3xl font-black text-white uppercase italic">Partie 1 : Rapport de Test (Interface Graphique)</h2>
+                <div class="h-1 flex-grow bg-slate-800"></div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12">
+                <div class="space-y-8">
+                    <div class="p-6 glass-card rounded-2xl neon-border-blue">
+                        <h3 class="text-blue-400 font-bold mb-4">Configuration des Règles</h3>
+                        <ul class="text-sm space-y-3 text-slate-300">
+                            <li><strong class="text-white">Règle 1 (sid:1) :</strong> Détection et blocage global ICMP.</li>
+                            <li><strong class="text-white">Règle 2 (sid:2) :</strong> Alerte sur requêtes entrantes (Type 8).</li>
+                            <li><strong class="text-white">Règle 3 (sid:3) :</strong> Monitoring des réponses (Type 0).</li>
+                        </ul>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 text-center">
+                            <p class="text-xs text-slate-500 uppercase font-bold">Alertes</p>
+                            <p class="text-3xl font-black text-blue-500">6</p>
+                        </div>
+                        <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 text-center">
+                            <p class="text-xs text-slate-500 uppercase font-bold">Bloqués (Drop)</p>
+                            <p class="text-3xl font-black text-rose-500">12</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                    <h4 class="text-sm font-bold mb-4 italic text-slate-500">Figure 1: Aperçu du fichier local.rules</h4>
+                    <img src="image2.png" alt="Règles local.rules" class="rounded border border-slate-700">
+                </div>
+            </div>
+
+            <div class="mt-12 grid md:grid-cols-2 gap-8">
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                    <h4 class="text-sm font-bold mb-4 italic text-slate-500">Figure 2: État du service avant activation</h4>
+                    <img src="image3.png" alt="Interface Stopped" class="rounded border border-slate-700">
+                </div>
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                    <h4 class="text-sm font-bold mb-4 italic text-slate-500">Figure 3: Détection ICMP en temps réel</h4>
+                    <img src="image1.png" alt="Interface Running" class="rounded border border-slate-700">
+                </div>
+            </div>
+        </section>
+
+        <!-- PARTIE 2 : CONFIGURATION EXPERT CLI -->
+        <section id="partie2" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-10">
+                <h2 class="text-3xl font-black text-white uppercase italic">Partie 2 : Configuration Technique (CLI)</h2>
+                <div class="h-1 flex-grow bg-slate-800"></div>
+            </div>
+
+            <!-- NOTE COPIER COLLER -->
+            <div class="bg-amber-900/10 border border-amber-500/30 p-6 rounded-2xl mb-12 flex gap-6 items-start">
+                <span class="text-4xl">💡</span>
+                <p class="text-slate-300 text-sm">
+                    <strong>Note d'administration :</strong> Comme Ubuntu et Fedora ne permettent pas le copier-coller direct en console, nous utilisons le terminal de <strong>Kali</strong> comme passerelle via <strong>SSH</strong> (<code class="text-white">ssh saleh@10.2.2.2</code>). Le clavier doit être configuré avec <code class="text-white">setxkbmap fr</code>.
+                </p>
+            </div>
+
+            <div class="space-y-12">
+                <!-- FEDORA CONFIG -->
+                <div class="glass-card p-8 rounded-3xl neon-border-blue">
+                    <h3 class="text-xl font-bold text-white mb-6">1. Configuration du Pont IPS (Fedora)</h3>
+                    <p class="text-sm text-slate-400 mb-4 italic">Adressage IP permanent et activation du routage.</p>
+                    <div class="command-block">
+                        <code id="fed_ip" class="text-blue-300 text-xs md:text-sm">
+                            # Configuration des cartes réseau<br>
+                            sudo nmcli con add type ethernet con-name "LAN-UBUNTU" ifname enp0s3 ipv4.addresses 10.2.1.1/24 ipv4.method manual<br>
+                            sudo nmcli con add type ethernet con-name "LAN-KALI" ifname enp0s8 ipv4.addresses 10.2.2.2/24 ipv4.method manual<br>
+                            sudo nmcli con up "LAN-UBUNTU" && sudo nmcli con up "LAN-KALI"<br><br>
+                            # Routage et file d'attente NFQUEUE<br>
+                            sudo sysctl -w net.ipv4.ip_forward=1<br>
+                            sudo iptables -I FORWARD -j NFQUEUE --queue-num 0 --queue-bypass
+                        </code>
+                        <button class="copy-btn" onclick="copy('fed_ip')">Copier</button>
+                    </div>
+                </div>
+
+                <!-- ATTACKER CONFIG -->
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="glass-card p-6 rounded-2xl border-l-4 border-emerald-500">
+                        <h3 class="text-emerald-500 font-bold mb-4">Attaquant (Kali)</h3>
+                        <div class="command-block">
+                            <code id="kali_cmd" class="text-emerald-400 text-xs">
+                                sudo ip addr add 10.2.2.1/24 dev eth0<br>
+                                sudo ip route add 10.2.1.0/24 via 10.2.2.2
+                            </code>
+                            <button class="copy-btn" onclick="copy('kali_cmd')">Copier</button>
+                        </div>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl border-l-4 border-rose-500">
+                        <h3 class="text-rose-500 font-bold mb-4">Victime (Ubuntu)</h3>
+                        <div class="command-block">
+                            <code id="ubu_cmd" class="text-rose-400 text-xs">
+                                sudo ip addr add 10.2.1.2/24 dev enp0s3<br>
+                                sudo ip route add 10.2.2.0/24 via 10.2.1.1
+                            </code>
+                            <button class="copy-btn" onclick="copy('ubu_cmd')">Copier</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 </body>
 </html>
